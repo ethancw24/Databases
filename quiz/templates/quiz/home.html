@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Home</title>
+</head>
+<body>
+    <h1>Welcome to the Quiz App</h1>
+    {% if user.is_authenticated %}
+        <p>Hello, {{ user.username }}!</p>
+        <h2>Select a Topic:</h2>
+        <ul>
+            {% for topic in topics %}
+            <li><a href="{% url 'quiz:start_quiz' topic.id %}">{{ topic.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'quiz:logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'quiz:login' %}">Login</a>
+        <a href="{% url 'quiz:register' %}">Register</a>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Results</title>
+</head>
+<body>
+    <h1>Quiz Results</h1>
+    <p>Your Score: {{ score }} / {{ total }}</p>
+    <h2>Explanations:</h2>
+    <ul>
+        {% for question, answer, explanation in explanations %}
+        <li>
+            <p><strong>Question:</strong> {{ question }}</p>
+            <p><strong>Your Answer:</strong> {{ answer }}</p>
+            <p><strong>Explanation:</strong> {{ explanation }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'quiz:home' %}">Back to Home</a>
+</body>
+</html>
