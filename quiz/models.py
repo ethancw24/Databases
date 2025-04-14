@@ -1,35 +1,35 @@
-# quiz/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
-class Topic(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
+class User(AbstractUser):
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Admin(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    admin_level = models.IntegerField()
 
     def __str__(self):
-        return self.name
+        return f"Admin: {self.user.username} (Level {self.admin_level})"
+
+class RegisteredUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    trust_rating = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"Registered: {self.user.username} (Trust {self.trust_rating})"
 
 class Question(models.Model):
+    qnum = models.AutoField(primary_key=True)
     text = models.TextField()
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    wrong_answers = models.TextField(default="N/A", help_text="Comma-separated wrong answers")
+    trust_rating = models.FloatField(default=0.0)
 
     def __str__(self):
-        return self.text
+        return f"Q{self.qnum}: {self.text[:50]}..."
 
-class Answer(models.Model):
-    text = models.CharField(max_length=200)
-    #explanation = models.TextField()  # Explanation for why this answer is correct/incorrect
-    question = models.ForeignKey(Question, related_name='answers', on_delete=models.CASCADE)
-    is_correct = models.BooleanField(default=False)  # Mark if this is the correct answer
+class RightAnswer(models.Model):
+    qnum = models.OneToOneField(Question, on_delete=models.CASCADE, primary_key=True)
+    text = models.TextField()
 
     def __str__(self):
-        return self.text
-
-
-class QuizProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    score = models.IntegerField()
-    quiz_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.user} - {self.score} - {self.quiz_date}'
+        return f"Answer for Q{self.qnum.qnum}"
