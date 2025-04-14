@@ -12,3 +12,4 @@ However, you'll have to manually add a quiz type into the db
 
 pip install django
 pip install openai
+pip install dotenv
