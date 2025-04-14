@@ -1,10 +1,11 @@
 from pathlib import Path
-
+from dotenv import load_dotenv
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
-# Keep this key secret
-SECRET_KEY = '03142025secretkey'
+SECRET_KEY = os.getenv("OPENAI_API_KEY")
 
 DEBUG = True
 
@@ -19,6 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'quiz',  # Your app
 ]
+
+AUTH_USER_MODEL = 'quiz.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

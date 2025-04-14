@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>Quiz Time!</h1>
+    <form method="post" action="{% url 'quiz:submit_quiz' %}">
+        {% csrf_token %}
+        {% for question in questions %}
+            <div>
+                <p><strong>{{ question.text }}</strong></p>
+
+                {% for option in question.wrong_list %}
+                    <label>
+                        <input type="radio" name="question_{{ question.qnum }}" value="{{ option }}">
+                        {{ option }}
+                    </label><br>
+                {% endfor %}
+
+                <label>
+                    <input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text }}">
+                    {{ question.rightanswer.text }}
+                </label><br>
+            </div>
+        {% endfor %}
+        <button type="submit">Submit Quiz</button>
+    </form>
+</body>
+</html>
