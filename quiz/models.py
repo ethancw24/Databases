@@ -21,7 +21,7 @@ class RegisteredUser(models.Model):
 class Question(models.Model):
     qnum = models.AutoField(primary_key=True)
     text = models.TextField()
-    wrong_answers = models.TextField(default="N/A", help_text="Comma-separated wrong answers")
+    wrong_answers = models.TextField(help_text="JSON list of wrong answers")
     trust_rating = models.FloatField(default=0.0)
 
     def __str__(self):

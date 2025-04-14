@@ -13,12 +13,18 @@
         {% for question in questions %}
             <div>
                 <p><strong>{{ question.text }}</strong></p>
-                {% with question.wrong_answers|split:"," as wrongs %}
-                    {% for option in wrongs %}
-                        <label><input type="radio" name="question_{{ question.qnum }}" value="{{ option|trim }}">{{ option }}</label><br>
-                    {% endfor %}
-                {% endwith %}
-                <label><input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text }}">{{ question.rightanswer.text }}</label><br>
+
+                {% for option in question.wrong_list %}
+                    <label>
+                        <input type="radio" name="question_{{ question.qnum }}" value="{{ option }}">
+                        {{ option }}
+                    </label><br>
+                {% endfor %}
+
+                <label>
+                    <input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text }}">
+                    {{ question.rightanswer.text }}
+                </label><br>
             </div>
         {% endfor %}
         <button type="submit">Submit Quiz</button>
