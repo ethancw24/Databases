@@ -12,6 +12,9 @@
         <form action="{% url 'quiz:start_quiz' %}" method="get">
             <button type="submit">Take Quiz</button>
         </form>
+        {% if user.is_staff %}
+            <p><a href="{% url 'quiz:manage_questions' %}">🔧 Manage Questions (Admin)</a></p>
+        {% endif %}
         <a href="{% url 'quiz:logout' %}">Logout</a>
     {% else %}
         <a href="{% url 'quiz:login' %}">Login</a>

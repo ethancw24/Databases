@@ -20,7 +20,7 @@ client = OpenAI(api_key=api_key)
 
 from quiz.models import Question, RightAnswer
 
-MAX_PER_RUN = 30
+MAX_PER_RUN = 10
 MAX_TOTAL_GENS = 30
 GEN_TRACK_FILE = os.path.join(os.path.dirname(__file__), "total_gens.txt")
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     room_left = MAX_TOTAL_GENS - total_now
 
     if room_left <= 0:
-        print("🚫 Max total generations reached. Aborting.")
+        print("Max total generations reached. Aborting.")
     else:
         count = min(MAX_PER_RUN, room_left)
         successes = 0

@@ -22,8 +22,8 @@
                 {% endfor %}
 
                 <label>
-                    <input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text }}">
-                    {{ question.rightanswer.text }}
+                    <input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text|escape }}">
+                    {{ question.rightanswer.text|escape }}
                 </label><br>
             </div>
         {% endfor %}
