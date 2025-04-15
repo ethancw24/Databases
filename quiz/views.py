@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from .forms import RegisterForm
-from .models import Question, RightAnswer
+from .models import Question, RightAnswer, RegisteredUser
 import random
 
 def home(request):
@@ -40,7 +40,12 @@ def logout_view(request):
 @staff_member_required
 def manage_questions(request):
     questions = Question.objects.all()
-    return render(request, 'quiz/manage_questions.html', {'questions': questions})
+    return render(request, 'manage_questions.html', {'questions': questions})
+
+@staff_member_required
+def manage_users(request):
+    users = RegisteredUser.objects.all()
+    return render(request, 'manage_users.html', {'users': users})
 
 @staff_member_required
 def delete_question(request, qnum):
