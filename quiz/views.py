@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from .forms import RegisterForm
 from .models import Question, RightAnswer, User
 import random
@@ -56,7 +58,7 @@ def delete_question(request, qnum):
 @staff_member_required
 def delete_user(request, user_id):
     user = User.objects.get(id=user_id)
-    if not user.is_superuser:  # Don't delete admin accounts
+    if not user.is_staff:  # Don't delete admin accounts
         user.delete()
     return redirect('quiz:manage_users')
 
