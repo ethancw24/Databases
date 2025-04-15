@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, redirect
 from .forms import RegisterForm
 from .models import Question, RightAnswer
 import random
@@ -34,6 +36,17 @@ def register(request):
 def logout_view(request):
     logout(request)
     return redirect('quiz:home')
+
+@staff_member_required
+def manage_questions(request):
+    questions = Question.objects.all()
+    return render(request, 'quiz/manage_questions.html', {'questions': questions})
+
+@staff_member_required
+def delete_question(request, qnum):
+    question = get_object_or_404(Question, qnum=qnum)
+    question.delete()  # This also deletes the related RightAnswer due to on_delete=models.CASCADE
+    return redirect('quiz:manage_questions')
 
 @login_required
 def start_quiz(request):
