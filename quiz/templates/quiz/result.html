@@ -8,13 +8,13 @@
 <body>
     <h1>Quiz Results</h1>
     <p>Your Score: {{ score }} / {{ total }}</p>
-    <h2>Explanations:</h2>
+    <h2>Review:</h2>
     <ul>
-        {% for question, answer, explanation in explanations %}
+        {% for question, selected, correct in explanations %}
         <li>
             <p><strong>Question:</strong> {{ question }}</p>
-            <p><strong>Your Answer:</strong> {{ answer }}</p>
-            <p><strong>Explanation:</strong> {{ explanation }}</p>
+            <p><strong>Your Answer:</strong> {{ selected }}</p>
+            <p><strong>Correct Answer:</strong> {{ correct }}</p>
         </li>
         {% endfor %}
     </ul>
