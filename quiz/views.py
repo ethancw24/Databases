@@ -53,12 +53,12 @@ def delete_question(request, qnum):
     question.delete()  # This also deletes the related RightAnswer due to on_delete=models.CASCADE
     return redirect('quiz:manage_questions')
 
-@user_passes_test(lambda u: u.is_superuser)
+@staff_member_required
 def delete_user(request, user_id):
     user = User.objects.get(id=user_id)
     if not user.is_superuser:  # Don't delete admin accounts
         user.delete()
-    return redirect('manage_users')
+    return redirect('quiz:manage_users')
 
 @login_required
 def start_quiz(request):
