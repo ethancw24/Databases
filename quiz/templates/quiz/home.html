@@ -14,6 +14,7 @@
         </form>
         {% if user.is_staff %}
                 <a href="{% url 'quiz:manage_questions' %}">Manage Questions (Admin)</a>
+                <a href="{% url 'quiz:manage_users' %}">Manage Users (Admin)</a>
         {% endif %}
         <a href="{% url 'quiz:logout' %}">Logout</a>
     {% else %}
