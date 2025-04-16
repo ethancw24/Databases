@@ -13,4 +13,7 @@ urlpatterns = [
     path('manage-questions/', views.manage_questions, name='manage_questions'),
     path('manage-users/', views.manage_users, name='manage_users'),
     path('delete-question/<int:qnum>/', views.delete_question, name='delete_question'),
+    path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('delete-all-questions/', views.delete_all_questions, name='delete_all_questions'),
+    path('generate-questions/', views.generate_questions, name='generate_questions'),
 ]
