@@ -11,7 +11,6 @@ def home(request):
     return render(request, 'quiz/home.html')
 
 @login_required
-@login_required
 def start_quiz(request):
     questions = list(Question.objects.all())
     random.shuffle(questions)

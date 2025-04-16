@@ -3,11 +3,14 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .forms import RegisterForm
 from .models import Question, RightAnswer, User
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect, render
+from quiz.models import Question
+from.generate_question import save_to_db
 import random
 
 def home(request):
@@ -42,17 +45,31 @@ def logout_view(request):
 @staff_member_required
 def manage_questions(request):
     questions = Question.objects.all()
-    return render(request, 'manage_questions.html', {'questions': questions})
+    return render(request, 'quiz/manage_questions.html', {'questions': questions})
 
 @staff_member_required
 def manage_users(request):
     users = User.objects.all()
     return render(request, 'manage_users.html', {'users': users})
 
-@staff_member_required
+@require_POST
 def delete_question(request, qnum):
-    question = get_object_or_404(Question, qnum=qnum)
-    question.delete()  # This also deletes the related RightAnswer due to on_delete=models.CASCADE
+    Question.objects.filter(qnum=qnum).delete()
+    return redirect('quiz:manage_questions')
+
+@staff_member_required
+@require_POST
+def delete_all_questions(request):
+    Question.objects.all().delete()
+    return redirect('quiz:manage_questions')
+
+@staff_member_required
+@require_POST
+def generate_questions(request):
+    count = 0
+    for _ in range(10):
+        if save_to_db():
+            count += 1
     return redirect('quiz:manage_questions')
 
 @staff_member_required

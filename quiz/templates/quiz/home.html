@@ -13,8 +13,7 @@
             <button type="submit">Take Quiz</button>
         </form>
         {% if user.is_staff %}
-            <p><a href="{% url 'quiz:manage_questions' %}">🔧 Manage Questions (Admin)</a></p>
-            <p><a href="{% url 'quiz:manage_users' %}">🔧 Manage Users (Admin)</a></p>
+                <a href="{% url 'quiz:manage_questions' %}">Manage Questions (Admin)</a>
         {% endif %}
         <a href="{% url 'quiz:logout' %}">Logout</a>
     {% else %}
