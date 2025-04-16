@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 
 class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -33,3 +33,9 @@ class RightAnswer(models.Model):
 
     def __str__(self):
         return f"Answer for Q{self.qnum.qnum}"
+    
+class QuizAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    total = models.IntegerField()
+    taken_at = models.DateTimeField(auto_now_add=True)

@@ -10,9 +10,12 @@ from .models import Question, RightAnswer, User
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from quiz.models import Question
-from.generate_question import save_to_db
+from .generate_question import save_to_db
+from django.db.models import Avg
+from .models import QuizAttempt
 import random
 
+@login_required
 def home(request):
     return render(request, 'quiz/home.html')
 
@@ -85,16 +88,24 @@ def start_quiz(request):
     random.shuffle(questions)
     selected_questions = questions[:8]
     for q in selected_questions:
-        q.wrong_list = q.wrong_answers.split(",")
+        try:
+            q.wrong_list = q.wrong_answers.split(",")
+        except Exception as e:
+            print(f"Failed to parse wrong_answers for Q{q.qnum}: {e}")
+            q.wrong_list = []
+
+    # Save selected question IDs in session
+    request.session['quiz_qnums'] = [q.qnum for q in selected_questions]
+
     return render(request, 'quiz/quiz.html', {'questions': selected_questions})
 
 @login_required
 def submit_quiz(request):
     if request.method == 'POST':
-        from .generate_question import save_to_db  # Import the generator
-        questions = Question.objects.all()
+        quiz_qnums = request.session.get('quiz_qnums', [])
+        questions = Question.objects.filter(qnum__in=quiz_qnums)
         score = 0
-        explanations = []
+        results = []
 
         for question in questions:
             selected = request.POST.get(f"question_{question.qnum}")
@@ -109,17 +120,32 @@ def submit_quiz(request):
                 question.trust_rating = (question.trust_rating + 0.0) / 2
 
             question.save()
-            explanations.append((question.text, selected, correct))
+            
+            # Question result information
+            results.append({
+                'text': question.text,
+                'selected': selected,
+                'correct': correct,
+                'is_correct': is_correct,
+                'explanation': generate_explanation(question.text, correct)
+            })
 
             if question.trust_rating < 0.6:
                 question.delete()  # Will cascade and remove RightAnswer too
                 save_to_db()       # Replace with a new question
 
+        QuizAttempt.objects.create(user=request.user, score=score, total=len(questions))
+        avg = QuizAttempt.objects.filter(user=request.user).aggreagate(avg_score=Avg('score'))['avg']
+
         return render(request, 'quiz/result.html', {
             'score': score,
             'total': len(questions),
-            'explanations': explanations
+            'explanations': explanations,
+            'avg': avg
         })
 
     return redirect('quiz:home')
 
+# IF TIME PERMITS, HAVE THE AI EXPLAIN WHY AN ANSWER IS CORRECT
+def generate_explanation(question, correct_answer):
+    return f"The correct answer {correct_answer} is based off of Python"
