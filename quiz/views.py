@@ -14,6 +14,7 @@ from .generate_question import save_to_db
 from django.db.models import Avg
 from .models import QuizAttempt
 import random
+import json
 
 @login_required
 def home(request):
@@ -87,12 +88,27 @@ def start_quiz(request):
     questions = list(Question.objects.all())
     random.shuffle(questions)
     selected_questions = questions[:8]
+
     for q in selected_questions:
         try:
-            q.wrong_list = q.wrong_answers.split(",")
+            wrongs = json.loads(q.wrong_answers)
+            wrongs = [ans.strip().strip("[]\"'") for ans in wrongs][:3]
         except Exception as e:
             print(f"Failed to parse wrong_answers for Q{q.qnum}: {e}")
-            q.wrong_list = []
+            wrongs = []
+
+        try:
+            correct = q.rightanswer.text.strip().strip("[]\"'")
+        except Exception as e:
+            print(f"Failed to parse correct_answers for Q{q.qnum}: {e}")
+            correct = ""
+
+        # Combine all answers and shuffle
+        options = wrongs + [correct]
+        random.shuffle(options)
+
+        # Attach all of the possible answers to the question list
+        q.option_list = options
 
     # Save selected question IDs in session
     request.session['quiz_qnums'] = [q.qnum for q in selected_questions]

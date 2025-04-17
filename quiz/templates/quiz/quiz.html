@@ -5,29 +5,65 @@
     <meta charset="UTF-8">
     <title>Quiz</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font: Candara;
+            background-color: coral;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .question-block {
+            background-color: #93FFe0;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .submit-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: coral;
+            color: #93FFe0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background-color: rgb(252, 103, 49)
+        }
+    </style>
 </head>
 <body>
     <h1>Quiz Time!</h1>
     <form method="post" action="{% url 'quiz:submit_quiz' %}">
         {% csrf_token %}
-        {% for question in questions %}
-            <div>
-                <p><strong>{{ question.text }}</strong></p>
 
-                {% for option in question.wrong_list %}
-                    <label>
+        {% for question in questions %}
+            <div class="question-block">
+                <div class="question-text">{{ forloop.counter }}. {{ question.text }}</div>
+
+                {% for option in question.option_list %}
+                    <label class="option">
                         <input type="radio" name="question_{{ question.qnum }}" value="{{ option }}">
                         {{ option }}
-                    </label><br>
+                    </label>
                 {% endfor %}
-
-                <label>
-                    <input type="radio" name="question_{{ question.qnum }}" value="{{ question.rightanswer.text|escape }}">
-                    {{ question.rightanswer.text|escape }}
-                </label><br>
             </div>
         {% endfor %}
-        <button type="submit">Submit Quiz</button>
+        <button type="submit" class="submit-btn">Submit Quiz</button>
     </form>
 </body>
 </html>
