@@ -4,20 +4,33 @@
 <head>
     <title>Quiz Results</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <style>
+        .correct {color: green;}
+        .incorrect {color: red;}
+    </style>
 </head>
 <body>
     <h1>Quiz Results</h1>
-    <p>Your Score: {{ score }} / {{ total }}</p>
-    <h2>Review:</h2>
-    <ul>
-        {% for question, selected, correct in explanations %}
+    <p><strong>Your Score:</strong>{{ score }} / {{ total }}</p>
+    <p><strong>All-time Average:</strong> {{avg|floatformat:2}}</p>
+
+    <hr>
+    <h2>Question Review:</h2>
+    <ol>
+        {% for item in results %}
         <li>
-            <p><strong>Question:</strong> {{ question }}</p>
-            <p><strong>Your Answer:</strong> {{ selected }}</p>
-            <p><strong>Correct Answer:</strong> {{ correct }}</p>
+            <p><strong>Question:</strong> {{ item.text }}</p>
+            {% if item.is_correct %}
+                <p class="correct"><strong>Correct!!! Your Answer:</strong> {{ item.selected }}</p>
+            {% else %}
+                <p class="incorrect"><strong>Incorrect. Your Answer:</strong> {{ item.selected }}</p>
+                <p class="correct"><strong>Correct Answer:</strong> {{ item.selected }}</p>
+                <p><em>Explanation:</em> {{ item.selected }}</p>
+            {% endif %}
         </li>
+        </hr>
         {% endfor %}
-    </ul>
+    </ol>
     <a href="{% url 'quiz:home' %}">Back to Home</a>
 </body>
 </html>
