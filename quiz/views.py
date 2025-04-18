@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .forms import RegisterForm
+from .forms import RegisterForm, LoginForm
 from .models import Question, RightAnswer, User
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
@@ -20,27 +20,28 @@ import json
 def home(request):
     return render(request, 'quiz/home.html')
 
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('quiz:home')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'quiz/login.html', {'form': form})
+def auth_view(request):
+    login_form = LoginForm()
+    register_form = RegisterForm()
 
-def register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('quiz:home')
-    else:
-        form = RegisterForm()
-    return render(request, 'quiz/register.html', {'form': form})
+        if 'username' in request.POST and 'password' in request.POST:
+            login_form = LoginForm(request, data=request.POST)
+            if login_form.is_valid():
+                user = login_form.get_user()
+                login(request, user)
+                return redirect('quiz:home')
+        else:
+            register_form = RegisterForm(request.POST)
+            if register_form.is_valid():
+                user = register_form.save()
+                login(request, user)
+                return redirect('quiz:home')
+
+    return render(request, 'quiz/auth.html', {
+        'login_form': login_form,
+        'register_form': register_form
+    })
 
 def logout_view(request):
     logout(request)
