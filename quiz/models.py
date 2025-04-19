@@ -1,41 +1,60 @@
+from django.db import connection
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import AbstractUser, User
 
+#defined here because it gives security automatically to user fields
 class User(AbstractUser):
-    created_at = models.DateTimeField(auto_now_add=True)
+            created_at = models.DateTimeField(auto_now_add=True)
+class Admin:
+    pass
 
-class Admin(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    admin_level = models.IntegerField()
+class Question:
+    pass
 
-    def __str__(self):
-        return f"Admin: {self.user.username} (Level {self.admin_level})"
+class RightAnswer:
+    pass
 
-class RegisteredUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    trust_rating = models.FloatField(default=0.0)
+class QuizAttempt:
+    pass
 
-    def __str__(self):
-        return f"Registered: {self.user.username} (Trust {self.trust_rating})"
+def create_tables():
+    with connection.cursor() as cursor:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_admin (
+            user_id INTEGER PRIMARY KEY,
+            admin_level INTEGER NOT NULL,
+            FOREIGN KEY(user_id) REFERENCES quiz_user(id) ON DELETE CASCADE
+        )
+        """)
 
-class Question(models.Model):
-    qnum = models.AutoField(primary_key=True)
-    text = models.TextField()
-    wrong_answers = models.TextField(help_text="JSON list of wrong answers")
-    trust_rating = models.FloatField(default=0.0)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_question (
+            qnum INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            wrong_answers TEXT NOT NULL,
+            trust_rating FLOAT NOT NULL DEFAULT 0.0
+        )
+        """)
 
-    def __str__(self):
-        return f"Q{self.qnum}: {self.text[:50]}..."
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_rightanswer (
+            qnum_id INTEGER PRIMARY KEY,
+            text TEXT NOT NULL,
+            FOREIGN KEY(qnum_id) REFERENCES quiz_question(qnum) ON DELETE CASCADE
+        )
+        """)
 
-class RightAnswer(models.Model):
-    qnum = models.OneToOneField(Question, on_delete=models.CASCADE, primary_key=True)
-    text = models.TextField()
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_quizattempt (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            score INTEGER NOT NULL,
+            total INTEGER NOT NULL,
+            taken_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES quiz_user(id) ON DELETE CASCADE
+        )
+        """)
 
-    def __str__(self):
-        return f"Answer for Q{self.qnum.qnum}"
-    
-class QuizAttempt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    score = models.IntegerField()
-    total = models.IntegerField()
-    taken_at = models.DateTimeField(auto_now_add=True)
+if __name__ == "__main__":
+    create_tables()
+    print("Tables created successfully")
