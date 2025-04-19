@@ -168,6 +168,9 @@ def submit_quiz(request):
             cursor.execute("SELECT AVG(score) FROM quiz_quizattempt WHERE user_id = %s", [request.user.id])
             avg = cursor.fetchone()[0]
 
+        QuizAttempt.objects.create(user=request.user, score=score, total=len(questions))
+        avg = QuizAttempt.objects.filter(user=request.user).aggreagate(avg_score=Avg('score'))['avg']
+
         return render(request, 'quiz/result.html', {
             'score': score,
             'total': len(questions),
