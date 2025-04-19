@@ -1,7 +1,7 @@
 /* style.css */
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(120deg, #2c003e, #38016d);
+    background: linear-gradient(120deg, coral, #93FFe0);
     height: 100vh;
     margin: 0;
     display: flex;
@@ -36,7 +36,7 @@ justify-content: center;
 .form-box h2 {
 margin-bottom: 20px;
 font-size: 24px;
-color: #38016d;
+color: #93FFe0;
 }
 
 .form-box input {
@@ -58,8 +58,8 @@ background-color: #e0e0e0;
 width: 100%;
 margin-top: 20px;
 padding: 12px;
-background: #5c24a8;
-color: #fff;
+background: coral;
+color: #93FFe0;
 border: none;
 border-radius: 6px;
 font-weight: bold;
@@ -69,7 +69,7 @@ transition: background 0.3s ease-in-out;
 }
 
 .form-box button:hover {
-background: #43187d;
+background: rgb(255, 100, 44);
 }
 
 .toggle-container {
@@ -81,7 +81,7 @@ background-color: #f0f0f0;
 text-align: center;
 padding: 14px 0;
 font-weight: bold;
-color: #5c24a8;
+color: yellow;
 border-top: 1px solid #ccc;
 cursor: pointer;
 font-size: 14px;
