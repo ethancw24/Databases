@@ -95,8 +95,9 @@ def start_quiz(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT qnum, text, wrong_answers FROM quiz_question")
         all_questions = cursor.fetchall()
+    print("Total questions found in DB:", len(all_questions))
     random.shuffle(all_questions)
-    selected_questions = all_questions[:8]
+    selected_questions = all_questions[:10]
     quiz_questions = []
 
     for row in selected_questions:
@@ -146,6 +147,9 @@ def submit_quiz(request):
             correct = right_row[0] if right_row else ""
             is_correct = selected == correct
 
+            if is_correct:
+                score += 1
+
             new_trust = (trust_rating + (1.0 if is_correct else 0.0)) / 2
 
             with connection.cursor() as cursor:
@@ -163,19 +167,27 @@ def submit_quiz(request):
                 delete_question(request, qnum)
                 save_to_db()
 
+        # Save this quiz attempt
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO quiz_quizattempt (user_id, score, total, taken_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP)", [request.user.id, score, len(questions)])
-            cursor.execute("SELECT AVG(score) FROM quiz_quizattempt WHERE user_id = %s", [request.user.id])
-            avg = cursor.fetchone()[0]
+            cursor.execute("""
+                INSERT INTO quiz_quizattempt (user_id, score, total, taken_at)
+                VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            """, [request.user.id, score, len(questions)])
 
-        QuizAttempt.objects.create(user=request.user, score=score, total=len(questions))
-        avg = QuizAttempt.objects.filter(user=request.user).aggreagate(avg_score=Avg('score'))['avg']
+        # Calculate average score over all past attempts
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT AVG(score * 1.0 / total)
+                FROM quiz_quizattempt
+                WHERE user_id = %s
+            """, [request.user.id])
+            avg = cursor.fetchone()[0] or 0.0
 
         return render(request, 'quiz/result.html', {
             'score': score,
             'total': len(questions),
-            'explanations': results,
-            'avg': avg
+            'results': results,
+            'avg': avg * 100
         })
 
     return redirect('quiz:home')
