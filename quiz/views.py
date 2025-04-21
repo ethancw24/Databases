@@ -1,16 +1,19 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
-#from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-#from django.http import HttpResponseRedirect
-#from django.urls import reverse
 from .forms import RegisterForm, LoginForm
 from .generate_question import save_to_db
 from django.views.decorators.http import require_POST
 from django.db import connection
 import random
 import json
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 @login_required
 def home(request):
@@ -192,6 +195,24 @@ def submit_quiz(request):
 
     return redirect('quiz:home')
 
-# IF TIME PERMITS, HAVE THE AI EXPLAIN WHY AN ANSWER IS CORRECT
+# YouTube videos that helped write this code
+# OpenAi API help: https://www.youtube.com/watch?v=YVFWBJ1WVF8
+# Ollama (another ai generate but not used in the project) help: https://www.youtube.com/watch?v=E4l91XKQSgw&t=413s
 def generate_explanation(question, correct_answer):
-    return f"The correct answer {correct_answer} is based off of Python"
+    prompt = (
+        f"Look at the question and correct answer from a multiple choice test and explain the reasoning of why an answer is correct\n"
+        f"Question: {question}\n"
+        f"Correct Answer: {correct_answer}"
+    )
+
+    try:
+        reasoning = client.chat.completions.create(
+            model = "gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.8,
+        )
+        explanation = reasoning.choices[0].message.content.strip()
+        return explanation
+    except Exception:
+        return f"No response available at the time"
