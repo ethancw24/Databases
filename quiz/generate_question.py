@@ -64,9 +64,9 @@ def generate_code_question():
         data = json.loads(cleaned)
 
         #Clean up the responses
-        data["question"] = clean_answers(data["question"])
-        data["correct_answer"] = clean_answers(data["correct_answer"])
-        data["wrong_answers"] = clean_answers(clean_answers(ans) for ans in data["wrong_answers"][:3]) # Since there are only 4 options one is right 3 are wrong
+        data["question"] = clean_answer(data["question"])
+        data["correct_answer"] = clean_answer(data["correct_answer"])
+        data["wrong_answers"] = [clean_answer(ans) for ans in data["wrong_answers"][:3]] # Since there are only 4 options one is right 3 are wrong
         
         print("✅ Parsed & Cleaned JSON:", data)
         return data
@@ -101,10 +101,7 @@ def save_to_db():
         print("Failed to generate question.")
         return False
     
-def clean_answers(text):
-    return str(text).strip().strip("[]\"'")
-
-def clean_answers(text):
+def clean_answer(text):
     return str(text).strip().strip("[]\"'")
 
 if __name__ == "__main__":

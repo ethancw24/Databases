@@ -1,16 +1,19 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
-#from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-#from django.http import HttpResponseRedirect
-#from django.urls import reverse
 from .forms import RegisterForm, LoginForm
 from .generate_question import save_to_db
 from django.views.decorators.http import require_POST
 from django.db import connection
 import random
 import json
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 @login_required
 def home(request):
@@ -90,13 +93,28 @@ def delete_user(request, user_id):
             cursor.execute("DELETE FROM quiz_user WHERE id = %s", [user_id])
     return redirect('quiz:manage_users')
 
+@staff_member_required
+@require_POST
+def promote_user(request, user_id):
+    with connection.cursor() as cursor:
+        # Promote user to admin by setting is_staff = 1
+        cursor.execute("UPDATE quiz_user SET is_staff = 1 WHERE id = %s AND is_staff = 0", [user_id])
+        
+        # Insert into Admin table if not already admin
+        cursor.execute("SELECT 1 FROM quiz_admin WHERE user_id = %s", [user_id])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO quiz_admin (user_id, admin_level) VALUES (%s, %s)", [user_id, 1])
+    
+    return redirect('quiz:manage_users')
+
 @login_required
 def start_quiz(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT qnum, text, wrong_answers FROM quiz_question")
         all_questions = cursor.fetchall()
+    print("Total questions found in DB:", len(all_questions))
     random.shuffle(all_questions)
-    selected_questions = all_questions[:8]
+    selected_questions = all_questions[:10]
     quiz_questions = []
 
     for row in selected_questions:
@@ -146,6 +164,9 @@ def submit_quiz(request):
             correct = right_row[0] if right_row else ""
             is_correct = selected == correct
 
+            if is_correct:
+                score += 1
+
             new_trust = (trust_rating + (1.0 if is_correct else 0.0)) / 2
 
             with connection.cursor() as cursor:
@@ -163,23 +184,49 @@ def submit_quiz(request):
                 delete_question(request, qnum)
                 save_to_db()
 
+        # Save this quiz attempt
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO quiz_quizattempt (user_id, score, total, taken_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP)", [request.user.id, score, len(questions)])
-            cursor.execute("SELECT AVG(score) FROM quiz_quizattempt WHERE user_id = %s", [request.user.id])
-            avg = cursor.fetchone()[0]
+            cursor.execute("""
+                INSERT INTO quiz_quizattempt (user_id, score, total, taken_at)
+                VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+            """, [request.user.id, score, len(questions)])
 
-        QuizAttempt.objects.create(user=request.user, score=score, total=len(questions))
-        avg = QuizAttempt.objects.filter(user=request.user).aggreagate(avg_score=Avg('score'))['avg']
+        # Calculate average score over all past attempts
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT AVG(score * 1.0 / total)
+                FROM quiz_quizattempt
+                WHERE user_id = %s
+            """, [request.user.id])
+            avg = cursor.fetchone()[0] or 0.0
 
         return render(request, 'quiz/result.html', {
             'score': score,
             'total': len(questions),
-            'explanations': results,
-            'avg': avg
+            'results': results,
+            'avg': avg * 100
         })
 
     return redirect('quiz:home')
 
-# IF TIME PERMITS, HAVE THE AI EXPLAIN WHY AN ANSWER IS CORRECT
+# YouTube videos that helped write this code
+# OpenAi API help: https://www.youtube.com/watch?v=YVFWBJ1WVF8
+# Ollama (another ai generate but not used in the project) help: https://www.youtube.com/watch?v=E4l91XKQSgw&t=413s
 def generate_explanation(question, correct_answer):
-    return f"The correct answer {correct_answer} is based off of Python"
+    prompt = (
+        f"Look at the question and correct answer from a multiple choice test and explain the reasoning of why an answer is correct\n"
+        f"Question: {question}\n"
+        f"Correct Answer: {correct_answer}"
+    )
+
+    try:
+        reasoning = client.chat.completions.create(
+            model = "gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.8,
+        )
+        explanation = reasoning.choices[0].message.content.strip()
+        return explanation
+    except Exception:
+        return f"No response available at the time"
