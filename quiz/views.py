@@ -93,6 +93,20 @@ def delete_user(request, user_id):
             cursor.execute("DELETE FROM quiz_user WHERE id = %s", [user_id])
     return redirect('quiz:manage_users')
 
+@staff_member_required
+@require_POST
+def promote_user(request, user_id):
+    with connection.cursor() as cursor:
+        # Promote user to admin by setting is_staff = 1
+        cursor.execute("UPDATE quiz_user SET is_staff = 1 WHERE id = %s AND is_staff = 0", [user_id])
+        
+        # Insert into Admin table if not already admin
+        cursor.execute("SELECT 1 FROM quiz_admin WHERE user_id = %s", [user_id])
+        if not cursor.fetchone():
+            cursor.execute("INSERT INTO quiz_admin (user_id, admin_level) VALUES (%s, %s)", [user_id, 1])
+    
+    return redirect('quiz:manage_users')
+
 @login_required
 def start_quiz(request):
     with connection.cursor() as cursor:
