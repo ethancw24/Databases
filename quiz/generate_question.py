@@ -115,5 +115,5 @@ if __name__ == "__main__":
                 successes += 1
 
         update_total_generated(successes)
-        print(f"✅ {successes} new questions added. Total is now {get_total_generated()}.")
+        print(f"{successes} new questions added. Total is now {get_total_generated()}.")
 

@@ -112,7 +112,7 @@ def start_quiz(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT qnum, text, wrong_answers FROM quiz_question")
         all_questions = cursor.fetchall()
-    print("Total questions found in DB:", len(all_questions))
+    
     random.shuffle(all_questions)
     selected_questions = all_questions[:10]
     quiz_questions = []
