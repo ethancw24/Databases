@@ -149,12 +149,18 @@ def submit_quiz(request):
         score = 0
         results = []
 
+        # BASIC FUNCTION USING JOIN ***************************************************************************************
         with connection.cursor() as cursor:
             format_strings = ','.join(['%s'] * len(quiz_qnums))
-            cursor.execute(f"SELECT qnum, text, trust_rating, wrong_answers FROM quiz_question WHERE qnum IN ({format_strings})", quiz_qnums)
+            cursor.execute(f"""
+                SELECT q.qnum, q.text, q.trust_rating, q.wrong_answers, r.text
+                FROM quiz_question q
+                JOIN quiz_rightanswer r ON q.qnum = r.qnum_id
+                WHERE q.qnum IN ({format_strings})
+            """, quiz_qnums)
             questions = cursor.fetchall()
 
-        for qnum, text, trust_rating, _ in questions:
+        for qnum, text, trust_rating, wrong_answers, correct in questions:
             selected = request.POST.get(f"question_{qnum}")
 
             with connection.cursor() as cursor:
@@ -191,6 +197,7 @@ def submit_quiz(request):
                 VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
             """, [request.user.id, score, len(questions)])
 
+        # BASIC FUNCTION AGGREGATE **************************************************************************************
         # Calculate average score over all past attempts
         with connection.cursor() as cursor:
             cursor.execute("""
