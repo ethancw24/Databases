@@ -68,21 +68,17 @@ def generate_code_question():
         data["correct_answer"] = clean_answer(data["correct_answer"])
         data["wrong_answers"] = [clean_answer(ans) for ans in data["wrong_answers"][:3]] # Since there are only 4 options one is right 3 are wrong
         
-        print("✅ Parsed & Cleaned JSON:", data)
+        print("Parsed & Cleaned JSON:", data)
         return data
 
     except Exception as e:
-        print("❌ Error parsing OpenAI response:", e)
+        print("Error parsing OpenAI response:", e)
         print("Cleaned content was:\n", cleaned if 'cleaned' in locals() else content)
         return None
 
 def save_to_db():
     data = generate_code_question()
     if data:
-        print("Saving question:", data["question"])
-        print("✅ Correct answer:", data["correct_answer"])
-        print("❌ Wrong answers:", data["wrong_answers"])
-
         with connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO quiz_question (text, wrong_answers, trust_rating) VALUES (%s, %s, 1.0) RETURNING qnum",
@@ -94,8 +90,6 @@ def save_to_db():
                 "INSERT INTO quiz_rightanswer (qnum_id, text) VALUES (%s, %s)",
                 [qnum, data["correct_answer"]]
             )
-
-        print(f"✅ Saved question {qnum}")
         return True
     else:
         print("Failed to generate question.")
